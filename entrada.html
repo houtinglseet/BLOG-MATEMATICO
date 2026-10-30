@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entrada</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 750px;
+            margin: 20px auto;
+            padding: 10px 15px;
+            color: #222;
+            line-height: 1.6;
+        }
+        a.volver { color: #1a5276; text-decoration: none; }
+        a.volver:hover { text-decoration: underline; }
+
+        h1 {
+            color: #1a5276;
+            border-bottom: 2px solid #1a5276;
+            padding-bottom: 5px;
+        }
+        .fecha { color: #7f8c8d; font-size: 14px; }
+
+        #contenido h1 { font-size: 26px; margin-top: 25px; }
+        #contenido h2 {
+            color: #2980b9;
+            font-size: 22px;
+            margin-top: 35px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 4px;
+        }
+        #contenido h3 { color: #1a5276; margin-top: 28px; }
+        #contenido p { margin: 8px 0; }
+        #contenido ul { padding-left: 25px; }
+        #contenido li { margin: 6px 0; }
+        #contenido ul ul {
+            background-color: #f4f8fb;
+            border-left: 3px solid #2980b9;
+            padding: 8px 8px 8px 25px;
+            margin: 8px 0;
+            border-radius: 4px;
+        }
+        #contenido hr {
+            border: none;
+            border-top: 1px solid #ddd;
+            margin: 30px 0;
+        }
+        #contenido strong { color: #1a5276; }
+        #contenido code {
+            background: #f2f2f2;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+    </style>
+
+    <script>
+        window.MathJax = { tex: { inlineMath: [['$', '$']] } };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+    <a class="volver" href="index.html">← Volver al blog</a>
+    <div id="entrada"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+    <script src="posts.js"></script>
+    <script>
+        const id = new URLSearchParams(window.location.search).get('id');
+        const post = publicaciones.find(p => p.id === id);
+        const contenedor = document.getElementById('entrada');
+
+        if (!post) {
+            contenedor.innerHTML = '<h1>Entrada no encontrada</h1>';
+        } else {
+            document.title = post.titulo;
+            contenedor.innerHTML = `
+                <h1>${post.titulo}</h1>
+                <span class="fecha">${post.fecha}</span>
+                <div id="contenido">Cargando...</div>
+            `;
+
+            const script = document.createElement('script');
+            script.src = post.archivo;
+            script.onload = () => {
+                const destino = document.getElementById('contenido');
+                const texto = entrada.contenido.trim();
+                const esHTML = texto.startsWith('<');
+
+                if (esHTML) {
+                    destino.innerHTML = texto;
+                } else if (typeof marked !== 'undefined') {
+                    destino.innerHTML = marked.parse(texto);
+                } else {
+                    destino.textContent = 'No se pudo cargar la librería de formato (revisa tu internet).';
+                }
+
+                if (window.MathJax && MathJax.typesetPromise) {
+                    MathJax.typesetPromise([destino]);
+                }
+            };
+            script.onerror = () => {
+                document.getElementById('contenido').textContent =
+                    'No se encontró el archivo: ' + post.archivo;
+            };
+            document.body.appendChild(script);
+        }
+    </script>
+</body>
+</html>
